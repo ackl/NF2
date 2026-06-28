@@ -20,6 +20,7 @@ Dataset entries are used under `data.boundaries`, `data.validation`, `data.sampl
 | map | spherical boundary | Spherical Br/Bt/Bp map input for full-disk or synoptic maps. |
 | random_radial_grouped | spherical sampler | Grouped radial samples in the spherical volume. |
 | random_spherical | spherical sampler | Ungrouped random samples in the spherical volume. |
+| random_fixed_radius | spherical sampler | Area-uniform random samples on one spherical radial shell. |
 | fits_reference | spherical validation | Reference spherical FITS comparison dataset. |
 | sphere | spherical validation | Spherical validation grid for field-quality callbacks. |
 | spherical_slices | spherical validation | Radial or angular slices for spherical visualization callbacks. |
@@ -199,6 +200,19 @@ Role: spherical sampler.
 | longitude_range | list[float] | [0, 360] | Longitude range in degrees unless `unit` is changed. |
 | length | int \| null | data.iterations | Internal sampler length; public YAML should usually use data.iterations. |
 | requires_jacobian | bool | true | Required for force-free, potential, and energy-gradient losses. |
+
+## `random_fixed_radius`
+
+Role: spherical sampler.
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| batch_size | int | data.batch_size | Random fixed-radius surface samples per batch. |
+| radius | float \| null | data.max_radius | Sampling radius in solar radii; omit to sample the top boundary. |
+| latitude_range | list[float] | [-90, 90] | Latitude range in degrees unless `unit` is changed. |
+| longitude_range | list[float] | [0, 360] | Longitude range in degrees unless `unit` is changed. |
+| length | int \| null | data.iterations | Internal sampler length; public YAML should usually use data.iterations. |
+| requires_jacobian | bool | false | Usually disabled because radial-top losses only need the field vector. |
 
 ## `sphere`
 

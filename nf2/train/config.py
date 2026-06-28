@@ -136,7 +136,7 @@ def _normalize_spherical_data(data):
     if not samplers:
         samplers = [_normalize_dataset_config({"id": "random", "type": "random_radial_grouped"}, role="sampler")]
     for sampler in samplers:
-        if sampler.get("type") in {"random_spherical", "random_radial_grouped"}:
+        if sampler.get("type") in {"random_spherical", "random_radial_grouped", "random_fixed_radius"}:
             sampler.setdefault("length", iterations)
 
     validation = data.pop("validation", None)

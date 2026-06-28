@@ -60,7 +60,7 @@ This page is generated from `nf2.reference` and mirrors the public v0.4 YAML sch
 | data.sampler.batch_size | int | 16384 in examples | Cartesian random sampler batch size. |
 | data.samplers | list[dict] | random_radial_grouped | Spherical physics sampling datasets. |
 | data.samplers[].id | str | random | Spherical sampler id used by losses. |
-| data.samplers[].type | random_radial_grouped \| random_spherical | random_radial_grouped | Spherical random sampler type. |
+| data.samplers[].type | random_radial_grouped \| random_spherical \| random_fixed_radius | random_radial_grouped | Spherical random sampler type. |
 | data.samplers[].batch_size | int | data.batch_size | Spherical random sampler batch size. |
 | data.potential_boundary | dict | FFT potential | Cartesian potential boundary data. Use type: none to disable. |
 | data.potential_boundary.id | str | ignored | Accepted for readability; normalized away because the runtime id is `potential`. |

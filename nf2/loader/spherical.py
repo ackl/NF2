@@ -9,7 +9,10 @@ from copy import deepcopy
 from astropy import units as u
 from lightning.pytorch import LightningDataModule
 
-from nf2.data.dataset import RandomSphericalCoordinateDataset, SphereDataset, SphereSlicesDataset, RandomRadialGroupedCoordinateDataset
+from nf2.data.dataset import (
+    RandomFixedRadiusCoordinateDataset, RandomRadialGroupedCoordinateDataset,
+    RandomSphericalCoordinateDataset, SphereDataset, SphereSlicesDataset,
+)
 from nf2.loader.base import BaseDataModule, DEFAULT_NUM_WORKERS
 from nf2.loader.spherical_datasets import (
     SphericalFITSReferenceDataset, SphericalMapDataset, _map, _reference_map_coordinate_bounds,
@@ -28,6 +31,7 @@ class SphericalDataModule(BaseDataModule):
         self.ds_mapping = {'map': SphericalMapDataset,
                            'fits_reference': SphericalFITSReferenceDataset,
                            'random_spherical': RandomSphericalCoordinateDataset,
+                           'random_fixed_radius': RandomFixedRadiusCoordinateDataset,
                            'random_radial_grouped': RandomRadialGroupedCoordinateDataset,
                            'sphere': SphereDataset,
                            'spherical_slices': SphereSlicesDataset}
@@ -73,16 +77,18 @@ class SphericalDataModule(BaseDataModule):
             config = deepcopy(config)
             c_type = config.pop('type')
             c_name = config.pop('id') if 'id' in config else f'{prefix}_{c_type}_{i}'
-            requires_jacobian = config.pop('requires_jacobian', True)
+            default_requires_jacobian = c_type != 'random_fixed_radius'
+            requires_jacobian = config.pop('requires_jacobian', default_requires_jacobian)
             config['ds_name'] = c_name if self.overview_id is None else f'{self.overview_id}_{c_name}'
             # update config with general config
             for k, v in general_config.items():
                 if k not in config:
                     config[k] = v
-            if c_type in ['random_spherical', 'random_radial_grouped']:
+            if c_type in ['random_spherical', 'random_radial_grouped', 'random_fixed_radius']:
                 if self.iterations is not None and 'length' not in config:
                     config['length'] = self.iterations
-                self._apply_random_reference_map(config)
+                if c_type in ['random_spherical', 'random_radial_grouped']:
+                    self._apply_random_reference_map(config)
             config['requires_jacobian'] = requires_jacobian
             os.makedirs(config['work_path'], exist_ok=True)
             dataset = self.ds_mapping[c_type](**config)

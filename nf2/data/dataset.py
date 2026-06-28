@@ -141,6 +141,46 @@ class RandomSphericalCoordinateDataset(NF2Dataset):
         return {'coords': random_coords}
 
 
+class RandomFixedRadiusCoordinateDataset(NF2Dataset):
+
+    def __init__(self, radius_range, batch_size, Mm_per_ds, radius=None,
+                 latitude_range=(-90, 90), longitude_range=(0, 360), unit='deg',
+                 length=None, requires_jacobian=False, **kwargs):
+        super().__init__(requires_jacobian=requires_jacobian)
+        longitude_range = u.Quantity(longitude_range, unit).to_value(u.rad)
+        latitude_range = u.Quantity(latitude_range, unit).to_value(u.rad)
+        colatitude_range = sorted(np.pi / 2 - latitude_range)  # convert to colatitude
+
+        self.radius = float(radius if radius is not None else np.max(radius_range))
+        self.Mm_per_ds = Mm_per_ds
+        self.colatitude_range = colatitude_range
+        self.longitude_range = longitude_range
+        self.batch_size = int(batch_size)
+        self.float_tensor = torch.FloatTensor
+        self.length = int(length) if length is not None else 1
+        self.coord_scale = (1 * u.solRad).to_value(u.Mm) / Mm_per_ds
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, item):
+        random_coords = self.float_tensor(self.batch_size, 3).uniform_()
+
+        random_coords[:, 0] = self.radius
+
+        lat_r = self.colatitude_range
+        v_min, v_max = np.min(np.cos(lat_r)), np.max(np.cos(lat_r))
+        random_coords[:, 1] = v_min + random_coords[:, 1] * (v_max - v_min)
+        random_coords[:, 1] = torch.arccos(random_coords[:, 1])
+
+        lon_r = self.longitude_range
+        random_coords[:, 2] = lon_r[0] + random_coords[:, 2] * (lon_r[1] - lon_r[0])
+
+        spherical_coords = random_coords
+        cartesian_coords = spherical_to_cartesian(spherical_coords, f=torch) * self.coord_scale
+        return {'coords': cartesian_coords, 'spherical_coords': spherical_coords}
+
+
 class RandomRadialGroupedCoordinateDataset(NF2Dataset):
 
     def __init__(self, radius_range, batch_size, Mm_per_ds,
